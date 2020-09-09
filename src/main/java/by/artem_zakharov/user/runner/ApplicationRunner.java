@@ -11,8 +11,18 @@ public class ApplicationRunner {
 
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfig.class);
         UserService userService = context.getBean(UserService.class);
-        User user = userService.getUser(1);
+        User user = userService.getUser(2);
         System.out.println("id user: " + user.getIdUser() + " username: " + user.getUsername());
+
+        String username = userService.getUsernameByIdUser(2);
+        System.out.println("username: " + username);
+
+        //userService.addUser("QWE123qw");
+        //System.out.println(userService.getUsernameByIdUser(5));
+
+//        int idUser = userService.getIdUserByUsername("ArtemZakharovBY");
+//        System.out.println("id user: " + idUser);
+
         context.close();
     }
 }

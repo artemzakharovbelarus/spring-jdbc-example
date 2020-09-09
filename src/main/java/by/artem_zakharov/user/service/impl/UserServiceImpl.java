@@ -23,4 +23,25 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+
+    @Override
+    public Integer getIdUserByUsername(String username) {
+        int i = 0;
+        i = userDAO.getIdUserByUsername(username);
+
+        return i;
+    }
+
+    @Override
+    public void addUser(String username) {
+        userDAO.addUser(username);
+    }
+
+    @Override
+    public String getUsernameByIdUser(int idUser) {
+        String username = "";
+        username = userDAO.getUsernameByIdUser(idUser);
+
+        return username;
+    }
 }
