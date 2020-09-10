@@ -6,6 +6,8 @@ import by.artem_zakharov.user.service.api.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service("userServiceImpl")
 public class UserServiceImpl implements UserService {
 
@@ -14,6 +16,26 @@ public class UserServiceImpl implements UserService {
     @Autowired
     public UserServiceImpl(UserDAO userDAO){
         this.userDAO = userDAO;
+    }
+
+    @Override
+    public List<User> viewAllUsersWithMappingQuery() {
+        return userDAO.getAllUsersWithMappingQuery();
+    }
+
+    @Override
+    public void updateUser(User user) {
+        userDAO.updateUser(user);
+    }
+
+    @Override
+    public void addUserQuery(User user) {
+        userDAO.insertUser(user);
+    }
+
+    @Override
+    public User viewUserByUsernameMappingQuery(String username) {
+        return userDAO.getUserByUsernameMappingQuery(username);
     }
 
     @Override
@@ -43,5 +65,15 @@ public class UserServiceImpl implements UserService {
         username = userDAO.getUsernameByIdUser(idUser);
 
         return username;
+    }
+
+    @Override
+    public List<User> viewAllUsers() {
+        return userDAO.getAllUsers();
+    }
+
+    @Override
+    public User viewUserByUsername(String username) {
+        return userDAO.getUserByUsername(username);
     }
 }

@@ -1,17 +1,24 @@
 package by.artem_zakharov.user.dao.impl;
 
 import by.artem_zakharov.user.dao.api.UserDAO;
-import by.artem_zakharov.user.dao.util.UserRowMapper;
+import by.artem_zakharov.user.dao.util.query.InsertUser;
+import by.artem_zakharov.user.dao.util.query.SelectAllUsers;
+import by.artem_zakharov.user.dao.util.query.SelectUserByUsername;
+import by.artem_zakharov.user.dao.util.query.UpdateUser;
 import by.artem_zakharov.user.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository("userDAOImpl")
@@ -21,10 +28,98 @@ public class UserDAOImpl implements UserDAO {
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
+    private final SelectAllUsers selectAllUsers;
+    private final SelectUserByUsername selectUserByUsername;
+    private final UpdateUser updateUser;
+    private final InsertUser insertUser;
+
     @Autowired
     public UserDAOImpl(DataSource dataSource){
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-        this.namedJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        jdbcTemplate = new JdbcTemplate(dataSource);
+        namedJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        selectAllUsers = new SelectAllUsers(dataSource);
+        selectUserByUsername = new SelectUserByUsername(dataSource);
+        updateUser = new UpdateUser(dataSource);
+        insertUser = new InsertUser(dataSource);
+    }
+
+    private static class UserRowMapper implements RowMapper<User> {
+
+        @Override
+        public User mapRow(ResultSet resultSet, int i) throws SQLException {
+            User user = new User(resultSet.getInt(1),
+                    resultSet.getString(2));
+            return user;
+        }
+    }
+
+    @Override
+    public void updateUser(User user) {
+        Map<String, Object> parameters = new HashMap<String, Object>(){{
+            put("username", user.getUsername());
+            put("idUser", user.getIdUser());
+        }};
+
+        updateUser.updateByNamedParam(parameters);
+    }
+
+    @Override
+    public void insertUser(User user) {
+        Map<String, Object> parameters = new HashMap<String, Object>(){{
+           put("username", user.getUsername());
+           put("password", user.getPassword());
+           put("email", user.getEmail());
+           put("idRole", user.getIdRole());
+        }};
+
+        insertUser.updateByNamedParam(parameters);
+    }
+
+    @Override
+    public User getUserByUsernameMappingQuery(String username) {
+        Map<String, Object> parameters = new HashMap<String, Object>(){{
+           put("username", username);
+        }};
+
+        return selectUserByUsername.executeByNamedParam(parameters).get(0);
+    }
+
+    @Override
+    public List<User> getAllUsersWithMappingQuery() {
+        return selectAllUsers.execute();
+    }
+
+    @Override
+    public User getUserByUsername(String username) {
+        String sql = "SELECT idUser, username FROM users WHERE username = :username";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>(){{
+            put("username", username);
+        }};
+
+        List<User> users = new ArrayList<>();
+        users = namedJdbcTemplate.query(sql, namedParameters, (resultSet, rowNum) -> {
+            User result = new User(resultSet.getInt(1),
+                    resultSet.getString(2));
+            return result;
+        });
+
+        return users.get(0);
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        String sql = "SELECT idUser, username FROM users";
+
+        List<User> users = new ArrayList<>();
+
+        users = namedJdbcTemplate.query(sql, (resultSet, rowNum) -> {
+            User user = new User(resultSet.getInt(1),
+                                 resultSet.getString(2));
+            return user;
+        });
+
+        return users;
     }
 
     @Override
